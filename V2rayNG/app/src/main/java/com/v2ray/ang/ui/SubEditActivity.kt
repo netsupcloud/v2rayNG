@@ -6,6 +6,7 @@ import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.lifecycleScope
+import com.v2ray.ang.AppConfig
 import com.v2ray.ang.R
 import com.v2ray.ang.databinding.ActivitySubEditBinding
 import com.v2ray.ang.dto.SubscriptionItem
@@ -46,6 +47,7 @@ class SubEditActivity : BaseActivity() {
         binding.etFilter.text = Utils.getEditable(subItem.filter)
         binding.chkEnable.isChecked = subItem.enabled
         binding.autoUpdateCheck.isChecked = subItem.autoUpdate
+        binding.allowInsecureUrl.isChecked = subItem.allowInsecureUrl
         binding.etPreProfile.text = Utils.getEditable(subItem.prevProfile)
         binding.etNextProfile.text = Utils.getEditable(subItem.nextProfile)
         return true
@@ -77,6 +79,7 @@ class SubEditActivity : BaseActivity() {
         subItem.autoUpdate = binding.autoUpdateCheck.isChecked
         subItem.prevProfile = binding.etPreProfile.text.toString()
         subItem.nextProfile = binding.etNextProfile.text.toString()
+        subItem.allowInsecureUrl = binding.allowInsecureUrl.isChecked
 
         if (TextUtils.isEmpty(subItem.remarks)) {
             toast(R.string.sub_setting_remarks)
@@ -90,7 +93,9 @@ class SubEditActivity : BaseActivity() {
 
             if (!Utils.isValidSubUrl(subItem.url)) {
                 toast(R.string.toast_insecure_url_protocol)
-                return false
+                if (!subItem.allowInsecureUrl) {
+                    return false
+                }
             }
         }
 
@@ -105,19 +110,28 @@ class SubEditActivity : BaseActivity() {
      */
     private fun deleteServer(): Boolean {
         if (editSubId.isNotEmpty()) {
-            AlertDialog.Builder(this).setMessage(R.string.del_config_comfirm)
-                .setPositiveButton(android.R.string.ok) { _, _ ->
-                    lifecycleScope.launch(Dispatchers.IO) {
-                        MmkvManager.removeSubscription(editSubId)
-                        launch(Dispatchers.Main) {
-                            finish()
+            if (MmkvManager.decodeSettingsBool(AppConfig.PREF_CONFIRM_REMOVE) == true) {
+                AlertDialog.Builder(this).setMessage(R.string.del_config_comfirm)
+                    .setPositiveButton(android.R.string.ok) { _, _ ->
+                        lifecycleScope.launch(Dispatchers.IO) {
+                            MmkvManager.removeSubscription(editSubId)
+                            launch(Dispatchers.Main) {
+                                finish()
+                            }
                         }
                     }
+                    .setNegativeButton(android.R.string.cancel) { _, _ ->
+                        // do nothing
+                    }
+                    .show()
+            } else {
+                lifecycleScope.launch(Dispatchers.IO) {
+                    MmkvManager.removeSubscription(editSubId)
+                    launch(Dispatchers.Main) {
+                        finish()
+                    }
                 }
-                .setNegativeButton(android.R.string.cancel) { _, _ ->
-                    // do nothing
-                }
-                .show()
+            }
         }
         return true
     }

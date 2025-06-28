@@ -138,6 +138,7 @@
     <!-- Preferences -->
     <string name="title_settings">Cài đặt</string>
     <string name="title_advanced">Cài đặt nâng cao</string>
+    <string name="title_core_settings">Cài đặt lõi</string>
     <string name="title_vpn_settings">Cài đặt VPN</string>
     <string name="title_pref_per_app_proxy">Proxy theo Ứng dụng</string>
     <string name="summary_pref_per_app_proxy">- Bình thường: Ứng dụng đã chọn sẽ kết nối thông qua Proxy, chưa chọn sẽ kết nối trực tiếp. \n- Chế độ Bypass: Ứng dụng đã chọn sẽ kết nối trực tiếp, chưa chọn sẽ kết nối qua Proxy. \n- Nếu bạn đang ở Trung Quốc thì vào Menu, chọn Tự động chọn ứng dụng Proxy.</string>
@@ -180,6 +181,8 @@
 
     <string name="title_pref_vpn_dns">VPN DNS (Chỉ IPv4 / IPv6)</string>
     <string name="title_pref_vpn_bypass_lan">Does VPN bypass LAN</string>
+
+    <string name="title_pref_vpn_interface_address">VPN Interface Address</string>
 
     <string name="title_pref_domestic_dns">DNS nội địa (Không bắt buộc)</string>
     <string name="summary_pref_domestic_dns">DNS</string>
@@ -238,6 +241,7 @@
     <string name="title_pref_auto_update_interval">Thời gian cập nhật tự động (Phút, giá trị tối thiểu là 15)</string>
 
     <string name="title_core_loglevel">Cấp độ nhật ký</string>
+    <string name="title_outbound_domain_resolve_method">Outbound domain pre-resolve method</string>
     <string name="title_mode">Chế độ kết nối</string>
     <string name="title_mode_help">Nhấn vào đây nếu bạn cần trợ giúp!</string>
     <string name="title_language">Ngôn ngữ</string>
@@ -258,6 +262,7 @@
     <string name="sub_setting_filter">Remarks regular filter</string>
     <string name="sub_setting_enable">Sử dụng gói đăng ký này</string>
     <string name="sub_auto_update">Bật tự động cập nhật</string>
+    <string name="sub_allow_insecure_url">Allow insecure HTTP address</string>
     <string name="sub_setting_pre_profile">Previous proxy configuration remarks</string>
     <string name="sub_setting_next_profile">Next proxy configuration remarks</string>
     <string name="sub_setting_pre_profile_tip">The configuration remarks exists and is unique</string>
@@ -316,6 +321,7 @@
     <string name="update_new_version_found">New version found: %s</string>
     <string name="update_now">Update now</string>
     <string name="update_check_pre_release">Check Pre-release</string>
+    <string name="update_checking_for_update">Checking for update…</string>
 
     <string-array name="share_method">
         <item>Xuất ra mã QR (Chụp màn hình để lưu)</item>
@@ -352,6 +358,12 @@
         <item>Follow config</item>
         <item>Bypass</item>
         <item>Not Bypass</item>
+    </string-array>
+
+    <string-array name="outbound_domain_resolve_method">
+        <item>Do not resolve</item>
+        <item>Resolve and add to DNS Hosts</item>
+        <item>Resolve and replace domain</item>
     </string-array>
 
 </resources>

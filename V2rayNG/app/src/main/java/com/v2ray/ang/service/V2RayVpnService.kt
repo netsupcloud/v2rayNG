@@ -33,12 +33,7 @@ import java.lang.ref.SoftReference
 class V2RayVpnService : VpnService(), ServiceControl {
     companion object {
         private const val VPN_MTU = 1500
-        private const val PRIVATE_VLAN4_CLIENT = "10.10.14.1"
-        private const val PRIVATE_VLAN4_ROUTER = "10.10.14.2"
-        private const val PRIVATE_VLAN6_CLIENT = "fc00::10:10:14:1"
-        private const val PRIVATE_VLAN6_ROUTER = "fc00::10:10:14:2"
         private const val TUN2SOCKS = "libtun2socks.so"
-
     }
 
     private lateinit var mInterface: ParcelFileDescriptor
@@ -104,7 +99,9 @@ class V2RayVpnService : VpnService(), ServiceControl {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        V2RayServiceManager.startV2rayPoint()
+        if (V2RayServiceManager.startCoreLoop()) {
+            startService()
+        }
         return START_STICKY
         //return super.onStartCommand(intent, flags, startId)
     }
@@ -158,14 +155,15 @@ class V2RayVpnService : VpnService(), ServiceControl {
         // If the old interface has exactly the same parameters, use it!
         // Configure a builder while parsing the parameters.
         val builder = Builder()
+        val vpnConfig = SettingsManager.getCurrentVpnInterfaceAddressConfig()
         //val enableLocalDns = defaultDPreference.getPrefBoolean(AppConfig.PREF_LOCAL_DNS_ENABLED, false)
 
         builder.setMtu(VPN_MTU)
-        builder.addAddress(PRIVATE_VLAN4_CLIENT, 30)
+        builder.addAddress(vpnConfig.ipv4Client, 30)
         //builder.addDnsServer(PRIVATE_VLAN4_ROUTER)
         val bypassLan = SettingsManager.routingRulesetsBypassLan()
         if (bypassLan) {
-            AppConfig.BYPASS_PRIVATE_IP_LIST.forEach {
+            AppConfig.ROUTED_IP_LIST.forEach {
                 val addr = it.split('/')
                 builder.addRoute(addr[0], addr[1].toInt())
             }
@@ -174,9 +172,10 @@ class V2RayVpnService : VpnService(), ServiceControl {
         }
 
         if (MmkvManager.decodeSettingsBool(AppConfig.PREF_PREFER_IPV6) == true) {
-            builder.addAddress(PRIVATE_VLAN6_CLIENT, 126)
+            builder.addAddress(vpnConfig.ipv6Client, 126)
             if (bypassLan) {
                 builder.addRoute("2000::", 3) //currently only 1/8 of total ipV6 is in use
+                builder.addRoute("fc00::", 18) //Xray-core default FakeIPv6 Pool
             } else {
                 builder.addRoute("::", 0)
             }
@@ -255,10 +254,12 @@ class V2RayVpnService : VpnService(), ServiceControl {
      * Starts the tun2socks process with the appropriate parameters.
      */
     private fun runTun2socks() {
+        Log.i(AppConfig.TAG, "Start run $TUN2SOCKS")
         val socksPort = SettingsManager.getSocksPort()
+        val vpnConfig = SettingsManager.getCurrentVpnInterfaceAddressConfig()
         val cmd = arrayListOf(
             File(applicationContext.applicationInfo.nativeLibraryDir, TUN2SOCKS).absolutePath,
-            "--netif-ipaddr", PRIVATE_VLAN4_ROUTER,
+            "--netif-ipaddr", vpnConfig.ipv4Router,
             "--netif-netmask", "255.255.255.252",
             "--socks-server-addr", "$LOOPBACK:${socksPort}",
             "--tunmtu", VPN_MTU.toString(),
@@ -269,7 +270,7 @@ class V2RayVpnService : VpnService(), ServiceControl {
 
         if (MmkvManager.decodeSettingsBool(AppConfig.PREF_PREFER_IPV6)) {
             cmd.add("--netif-ip6addr")
-            cmd.add(PRIVATE_VLAN6_ROUTER)
+            cmd.add(vpnConfig.ipv6Router)
         }
         if (MmkvManager.decodeSettingsBool(AppConfig.PREF_LOCAL_DNS_ENABLED)) {
             val localDnsPort = Utils.parseInt(MmkvManager.decodeSettingsString(AppConfig.PREF_LOCAL_DNS_PORT), AppConfig.PORT_LOCAL_DNS.toInt())
@@ -293,11 +294,11 @@ class V2RayVpnService : VpnService(), ServiceControl {
                     runTun2socks()
                 }
             }.start()
-            Log.i(AppConfig.TAG, process.toString())
+            Log.i(AppConfig.TAG, "$TUN2SOCKS process info : ${process.toString()}")
 
             sendFd()
         } catch (e: Exception) {
-            Log.e(AppConfig.TAG, "Failed to start tun2socks process", e)
+            Log.e(AppConfig.TAG, "Failed to start $TUN2SOCKS process", e)
         }
     }
 
@@ -308,13 +309,13 @@ class V2RayVpnService : VpnService(), ServiceControl {
     private fun sendFd() {
         val fd = mInterface.fileDescriptor
         val path = File(applicationContext.filesDir, "sock_path").absolutePath
-        Log.i(AppConfig.TAG, path)
+        Log.i(AppConfig.TAG, "LocalSocket path : $path")
 
         CoroutineScope(Dispatchers.IO).launch {
             var tries = 0
             while (true) try {
                 Thread.sleep(50L shl tries)
-                Log.i(AppConfig.TAG, "sendFd tries: $tries")
+                Log.i(AppConfig.TAG, "LocalSocket sendFd tries: $tries")
                 LocalSocket().use { localSocket ->
                     localSocket.connect(LocalSocketAddress(path, LocalSocketAddress.Namespace.FILESYSTEM))
                     localSocket.setFileDescriptorsForSend(arrayOf(fd))
@@ -348,13 +349,13 @@ class V2RayVpnService : VpnService(), ServiceControl {
         }
 
         try {
-            Log.i(AppConfig.TAG, "tun2socks destroy")
+            Log.i(AppConfig.TAG, "$TUN2SOCKS destroy")
             process.destroy()
         } catch (e: Exception) {
-            Log.e(AppConfig.TAG, "Failed to destroy tun2socks process", e)
+            Log.e(AppConfig.TAG, "Failed to destroy $TUN2SOCKS process", e)
         }
 
-        V2RayServiceManager.stopV2rayPoint()
+        V2RayServiceManager.stopCoreLoop()
 
         if (isForced) {
             //stopSelf has to be called ahead of mInterface.close(). otherwise v2ray core cannot be stooped

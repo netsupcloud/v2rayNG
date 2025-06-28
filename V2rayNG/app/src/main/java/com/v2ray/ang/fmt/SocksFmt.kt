@@ -5,6 +5,7 @@ import com.v2ray.ang.dto.ProfileItem
 import com.v2ray.ang.dto.V2rayConfig.OutboundBean
 import com.v2ray.ang.extension.idnHost
 import com.v2ray.ang.extension.isNotNullEmpty
+import com.v2ray.ang.handler.V2rayConfigManager
 import com.v2ray.ang.util.Utils
 import java.net.URI
 
@@ -22,7 +23,7 @@ object SocksFmt : FmtBase() {
         if (uri.idnHost.isEmpty()) return null
         if (uri.port <= 0) return null
 
-        config.remarks = Utils.urlDecode(uri.fragment.orEmpty())
+        config.remarks = Utils.urlDecode(uri.fragment.orEmpty()).let { if (it.isEmpty()) "none" else it }
         config.server = uri.idnHost
         config.serverPort = uri.port.toString()
 
@@ -60,10 +61,10 @@ object SocksFmt : FmtBase() {
      * @return the converted OutboundBean object, or null if conversion fails
      */
     fun toOutbound(profileItem: ProfileItem): OutboundBean? {
-        val outboundBean = OutboundBean.create(EConfigType.SOCKS)
+        val outboundBean = V2rayConfigManager.createInitOutbound(EConfigType.SOCKS)
 
         outboundBean?.settings?.servers?.first()?.let { server ->
-            server.address = profileItem.server.orEmpty()
+            server.address = getServerAddress(profileItem)
             server.port = profileItem.serverPort.orEmpty().toInt()
             if (profileItem.username.isNotNullEmpty()) {
                 val socksUsersBean = OutboundBean.OutSettingsBean.ServersBean.SocksUsersBean()

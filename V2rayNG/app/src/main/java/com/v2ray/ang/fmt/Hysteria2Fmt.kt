@@ -9,6 +9,7 @@ import com.v2ray.ang.dto.V2rayConfig.OutboundBean
 import com.v2ray.ang.extension.idnHost
 import com.v2ray.ang.extension.isNotNullEmpty
 import com.v2ray.ang.handler.MmkvManager
+import com.v2ray.ang.handler.V2rayConfigManager
 import com.v2ray.ang.util.Utils
 import java.net.URI
 
@@ -24,7 +25,7 @@ object Hysteria2Fmt : FmtBase() {
         val config = ProfileItem.create(EConfigType.HYSTERIA2)
 
         val uri = URI(Utils.fixIllegalUrl(str))
-        config.remarks = Utils.urlDecode(uri.fragment.orEmpty())
+        config.remarks = Utils.urlDecode(uri.fragment.orEmpty()).let { if (it.isEmpty()) "none" else it }
         config.server = uri.idnHost
         config.serverPort = uri.port.toString()
         config.password = uri.userInfo
@@ -144,7 +145,7 @@ object Hysteria2Fmt : FmtBase() {
      * @return the converted OutboundBean object, or null if conversion fails
      */
     fun toOutbound(profileItem: ProfileItem): OutboundBean? {
-        val outboundBean = OutboundBean.create(EConfigType.HYSTERIA2)
+        val outboundBean = V2rayConfigManager.createInitOutbound(EConfigType.HYSTERIA2)
         return outboundBean
     }
 }
