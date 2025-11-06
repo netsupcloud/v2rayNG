@@ -1,16 +1,20 @@
 [submodule "hysteria"]
 	path = hysteria
 	url = https://github.com/netsupcloud/hysteria
+	branch = master
 [submodule "AndroidLibXrayLite"]
 	path = AndroidLibXrayLite
 	url = https://github.com/netsupcloud/AndroidLibXrayLite
+	branch = master
 [submodule "badvpn"]
 	path = badvpn
 	url = https://github.com/netsupcloud/badvpn
+	branch = new
 [submodule "libancillary"]
 	path = libancillary
 	url = https://github.com/netsupcloud/libancillary
+	branch = shadowsocks-android
 [submodule "hev-socks5-tunnel"]
 	path = hev-socks5-tunnel
 	url = https://github.com/netsupcloud/hev-socks5-tunnel
-	branch = master
+	branch = main
