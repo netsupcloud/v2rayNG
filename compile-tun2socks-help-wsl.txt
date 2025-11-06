@@ -1,0 +1,45 @@
+COMPILE in LINUX:
+mkdir hev-socks5-tunnel
+cd hev-socks5-tunnel
+git clone --recursive https://github.com/heiher/hev-socks5-tunnel jni
+ndk-build
+
+
+OR:
+
+
+wsl --install ubuntu
+
+sudo apt update -y
+sudo apt install build-essential cmake -y
+
+TEMPORARY SET AFTER UPDATE YOU WIIL REMOVE AND REPLACE BY NEWS:-----------------------
+wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
+mkdir -p ~/android-sdk/cmdline-tools
+unzip commandlinetools-linux-*.zip -d ~/android-sdk/cmdline-tools
+mv ~/android-sdk/cmdline-tools/cmdline-tools ~/android-sdk/cmdline-tools/latest
+
+# Set environment
+echo 'export ANDROID_SDK_ROOT=$HOME/android-sdk' >> ~/.bashrc
+echo 'export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH' >> ~/.bashrc
+source ~/.bashrc
+TEMPORARY SET AFTER UPDATE YOU WIIL REMOVE AND REPLACE BY NEWS:-----------------------
+
+yes | sdkmanager --licenses
+sudo apt install sdkmanager
+sudo  apt install google-android-cmdline-tools-10.0-installer
+sudo sdkmanager "platform-tools" "build-tools;36.0.0"
+sdkmanager "ndk;29.0.14206865"
+
+# Add to ~/.bashrc and ~/.profile
+export ANDROID_SDK_ROOT=/usr/lib/android-sdk
+export ANDROID_HOME=$ANDROID_SDK_ROOT
+export NDK_HOME=$ANDROID_SDK_ROOT/ndk/29.0.14206865
+export PATH=$ANDROID_SDK_ROOT/cmdline-tools/10.0/bin:$ANDROID_SDK_ROOT/platform-tools:$ANDROID_SDK_ROOT/build-tools/36.0.0:$PATH
+
+source ~/.profile
+
+sudo apt install dos2unix
+
+sudo dos2unix compile-tun2socks.sh
+./compile-tun2socks.sh

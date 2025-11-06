@@ -22,7 +22,7 @@ ln -s $__dir/libancillary libancillary
 $NDK_HOME/ndk-build \
 	NDK_PROJECT_PATH=. \
 	APP_BUILD_SCRIPT=./tun2socks.mk \
-	APP_ABI=all \
+	APP_ABI="armeabi-v7a arm64-v8a" \
 	APP_PLATFORM=android-21 \
 	NDK_LIBS_OUT=$TMPDIR/libs \
 	NDK_OUT=$TMPDIR/tmp \
@@ -45,7 +45,7 @@ ln -s "$__dir/hev-socks5-tunnel" jni/hev-socks5-tunnel
 "$NDK_HOME/ndk-build" \
     NDK_PROJECT_PATH=. \
     APP_BUILD_SCRIPT=jni/Android.mk \
-	"APP_ABI=armeabi-v7a arm64-v8a x86 x86_64" \
+	"APP_ABI=armeabi-v7a arm64-v8a" \
 	APP_PLATFORM=android-21 \
     NDK_LIBS_OUT="$HEVTUN_TMP/libs" \
     NDK_OUT="$HEVTUN_TMP/obj" \

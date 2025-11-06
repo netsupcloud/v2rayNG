@@ -1,0 +1,4 @@
+cd AndroidLibXrayLite
+gomobile init
+go mod tidy -v
+gomobile bind -v -androidapi 21 ./
